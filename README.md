@@ -1,98 +1,120 @@
 # Solana Agent Ops Skill
 
-> **The operational infrastructure layer for autonomous AI agents on Solana.**
->
-> While the [Solana Agent Kit](https://github.com/sendaifun/solana-agent-kit) teaches agents *how to act* (swap, stake, transfer), this skill dictates *how they survive and operate safely* in production. It provides the critical infrastructure for identity, funding, confidential execution, monitoring, and agent-to-agent payments.
+**Production-grade operational infrastructure for autonomous AI agents on Solana.**
+
+> The Solana Agent Kit taught agents how to **act**. This skill teaches them how to **exist safely** — providing the identity, funding, and security layers required for unattended production execution.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## The Core Problem
+---
 
-An autonomous agent capable of moving real value on-chain introduces profound operational risks. A raw keypair is a single point of failure. An unbounded funding loop is a faucet waiting to be drained. A silent agent is an incident waiting to happen.
+## The Operational Gap
 
-This skill answers the five critical questions that every production-grade agent must address:
+When an agent moves from a local script to a production environment, "actions" are no longer enough. You are suddenly faced with critical infrastructure questions:
 
-1.  **Identity:** Who is the agent on-chain?
-2.  **Funding:** How does it sustain operations without exposing a massive honeypot?
-3.  **Security:** Where do its keys live to prevent exfiltration?
-4.  **Observability:** How do you monitor its health and stop it instantly if it goes rogue?
-5.  **Interoperability:** How does it safely transact with other agents?
+1.  **Identity**: How does the agent hold assets without a single-point-of-failure keypair?
+2.  **Funding**: How does it stay solvent without being a drainable faucet?
+3.  **Confidentiality**: Where do its keys live so a server breach isn't a total loss?
+4.  **Observability**: How do you monitor its "health" beyond just logs?
+5.  **Safety**: How do you stop it instantly if it goes rogue?
 
-If you get these wrong, an "autonomous agent" quickly becomes an "unsupervised wallet drainer." This skill provides the battle-tested patterns to get them right.
+**Solana Agent Ops** is the intentional answer to these questions. It is not a library of actions; it is the **operational framework** that makes those actions safe to run.
 
-## Capabilities & Patterns
+---
 
-This skill enforces a **simulate-first, least-privilege, and bounded-by-design** approach across all operational layers.
+## Core Pillars
 
-| Capability | Implementation Pattern |
-| :--- | :--- |
-| **Identity & Control** | Utilizes Squads v4 smart accounts to establish a stable, governable identity. The agent acts as a Proposer with strict, per-token spending limits for routine autonomy. |
-| **Self-Funding** | Implements threshold-based top-ups protected by rate limits, hard caps, and latching circuit breakers. Large treasury refills require human governance. |
-| **Confidential Execution** | Mandates that keys are generated and sealed inside a Trusted Execution Environment (TEE) such as Marlin Oyster or Phala dstack, gated by verified remote attestation. |
-| **Monitoring & Safety** | Leverages Helius webhooks for real-time visibility, read-only health checks, and a decisive on-chain kill switch. |
-| **M2M Payments** | Facilitates safe agent-to-agent transactions, ranging from simple transfers to escrow and streaming payments. |
+| Pillar | Implementation | The Guarantee |
+| :--- | :--- | :--- |
+| **Identity** | Squads v4 Smart Accounts | The agent is a *Proposer* on a multisig; the Vault is the durable identity. |
+| **Funding** | Bounded Self-Funding | Automated top-ups with hard caps, rate limits, and latching circuit breakers. |
+| **Execution** | TEE (Marlin/Phala) | Keys are generated and sealed inside hardware enclaves; never touch disk or env. |
+| **Monitoring** | Helius + Kill Switch | Real-time webhook alerts and a tested on-chain authority revocation path. |
+| **Payments** | M2M Rails | Secure agent-to-agent payments via escrows and streaming. |
 
-## Architecture Context
+---
 
-This skill is designed to complement, not replace, your existing development stack.
+## The Stack (2026)
 
-*   **`solana-dev-skill`**: Handles program development, RPC/client primitives, and general security checklists. Defer to this for anything not strictly related to agent operations.
-*   **`solana-agent-kit`**: The runtime library that defines *what* the agent can do (the actions).
-*   **`solana-agent-ops` (This Skill)**: The operational layer that defines *how* the agent runs safely in production.
+This skill is designed for the modern Solana AI stack:
+
+*   **Runtime**: Node.js 22 LTS / TypeScript 5.6+
+*   **Client**: `@solana/kit` (web3.js 2.x)
+*   **Identity**: Squads v4 (`@sqds/multisig`)
+*   **Actions**: `solana-agent-kit` v2
+*   **Infrastructure**: Helius (Data/RPC), Marlin Oyster / Phala (TEE)
+
+---
+
+## Technical Design: Progressive Loading
+
+To remain **token-efficient**, this skill uses a "router" architecture. Instead of loading the entire knowledge base into the agent's context, `SKILL.md` acts as a lightweight dispatcher that pulls in specific modules only when needed.
+
+```text
+User Request → SKILL.md (Router) → [Specific Module].md → Execution
+```
+
+This ensures the agent stays fast, accurate, and cost-effective even as the operational complexity grows.
+
+---
 
 ## Installation
 
-You can install the skill globally or customize the installation for specific projects.
-
-**Standard Installation (Global)**
-
-Installs the full skill into your default Claude config directory (`~/.claude/`).
+### Quick Start (Standard)
+Installs the full skill, agents, and commands to your default Claude configuration (`~/.claude/`).
 
 ```bash
-git clone https://github.com/<your-org>/solana-agent-ops-skill.git
+git clone https://github.com/your-org/solana-agent-ops-skill.git
 cd solana-agent-ops-skill
-./install.sh          # Use -y to skip prompts
+./install.sh
 ```
 
-**Custom Installation**
-
-Allows you to select the installation location and choose specific components (skills, agents, commands, rules).
+### Selective/Project Install
+Use this for custom locations or to install only specific components (e.g., just the security rules).
 
 ```bash
 ./install-custom.sh
 ```
 
-## Progressive Loading Design
+---
 
-This skill is engineered for **token efficiency**. The `skill/SKILL.md` file acts as a lightweight router, ensuring that only the specific knowledge file required for a given task is loaded into context. You never pay the token cost for the entire skill when answering a single operational question.
+## Guided Workflows
 
-Each knowledge file explicitly declares its purpose with a `> **Load when:**` directive to guarantee unambiguous routing.
+The skill provides specialized commands to handle complex ops tasks safely:
 
-## Usage Workflows
+*   **`/setup-squad`**: Initialize a Squads v4 identity with bounded spending limits.
+*   **`/fund-agent`**: Configure safety-gated automated funding.
+*   **`/deploy-tee`**: Provision a TEE enclave and generate sealed signing keys.
+*   **`/monitor-agent`**: Set up Helius-powered observability and alerts.
+*   **`/audit-agent`**: Run a pre-mainnet security review against the non-negotiables.
 
-The skill includes guided commands to streamline complex operational setups:
+---
 
-*   **Establish Identity:** `/setup-squad` — Provisions a Squads v4 smart account, assigns the agent as a Proposer, and configures a daily spending limit.
-*   **Configure Funding:** `/fund-agent` — Sets up automated top-ups with hard caps and a latching circuit breaker, routing large requests to treasury proposals.
-*   **Secure Deployment:** `/deploy-tee` — Guides the process of in-enclave key generation on Marlin Oyster or Phala, ensuring attestation before funding.
-*   **Safety Review:** `/audit-agent` — Evaluates the agent's architecture against non-negotiable safety principles and provides a go/no-go assessment.
+## The Non-Negotiables (Safety Culture)
 
-## Non-Negotiable Safety Culture
+1.  **Simulate Before Send**: Every transaction is dry-run before execution.
+2.  **Least Privilege**: The agent is a Proposer with a tight spending limit, never an admin.
+3.  **Keys Never Leak**: Private keys belong in TEEs or KMS; they never touch `.env` or logs.
+4.  **Human in the Loop**: Large treasury moves require explicit human approval via multisig.
+5.  **No Hype**: We state real technical guarantees and their assumptions.
 
-The following principles are enforced across all generated code and operational designs:
+---
 
-1.  **Simulate Before Send:** Every state-changing transaction must be simulated. No exceptions.
-2.  **Least Privilege:** The agent operates as a Proposer with a tight spending limit. It is never granted `Permissions.all()`.
-3.  **Bound Every Loop:** All automated processes must have rate limits, caps, and latching circuit breakers.
-4.  **Zero-Touch Keys:** Private keys must never touch environment variables, disk storage, or logs. They must be generated in-enclave or managed by a dedicated signer service.
-5.  **Multisig for Material Actions:** The agent proposes; humans release. All significant actions require multisig approval.
-6.  **Honesty in Guarantees:** We state real guarantees and their explicit assumptions. We do not over-promise or claim systems are "unhackable."
+## How it Fits
 
-## Default Stack (2026)
+```text
+   [ Your Agent's Logic ]
+             │
+   [ Solana Agent Kit ]  →  WHAT it can do (Actions)
+             │
+   [ Solana Agent Ops ]  →  HOW it runs safely (This Skill)
+             │
+   [     Solana       ]  →  The Network
+```
 
-*   **Client:** `@solana/kit` (web3.js 2.x)
-*   **Actions:** `solana-agent-kit` v2
-*   **Identity:** Squads v4 (`@sqds/multisig`)
-*   **Infrastructure:** Helius (+ MCP)
-*   **Confidential Compute:** Marlin Oyster (Intel TDX) / Phala dstack
-*   **Runtime:** Node.js 22 LTS, TypeScript 5.6+
+*Note: For program development (Anchor/Pinocchio) or low-level RPC primitives, this skill defers to [`solana-dev-skill`](https://github.com/solana-foundation/solana-dev-skill).*
+
+---
+
+## License
+MIT
