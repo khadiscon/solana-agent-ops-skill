@@ -122,7 +122,3 @@ solana-agent-ops-skill/
 ## Default stack (2026)
 
 `@solana/kit` (web3.js 2.x) · `solana-agent-kit` v2 · Squads v4 (`@sqds/multisig`) · Helius (+ MCP) · Marlin Oyster (Intel TDX) / Phala dstack · Node.js 22 LTS · TypeScript 5.6+.
-
-## License
-
-MIT — see [LICENSE](LICENSE). Built for the Solana agent-builder community.
