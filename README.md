@@ -1,24 +1,34 @@
 # Solana Agent Ops
 
-This repo is a skill package for Solana AI Kit.
+This repo is a skill package for Solana AI Kit, Claude Code, and Codex.
 
-It gives an agent the operational pieces it needs to run a Solana setup safely:
-- identity with Squads v4
-- funding with caps
+It tells an agent how to run Solana operations safely. It covers:
+- Squads v4 identity and roles
+- funding with caps and a circuit breaker
 - TEE signer deployment
 - monitoring and kill switch
 - agent-to-agent payments
 - security rules
 
+## What problem it solves
+
+Solana agents can do useful work, but they still need a safe way to exist in production.
+This repo gives them the operational rules and workflows for that. It helps with:
+- keeping the agent's identity stable
+- keeping keys out of `.env` and logs
+- keeping spending bounded
+- stopping the agent when something goes wrong
+- handling small payments without giving away full treasury control
+
 ## Install
 
-Run the standard installer:
+From the repo root, run the standard installer:
 
 ```bash
 ./install.sh
 ```
 
-Or use the custom installer if you want to choose what gets installed:
+Use the custom installer if you want to choose what gets installed or where it goes:
 
 ```bash
 ./install-custom.sh
@@ -32,7 +42,7 @@ Or use the custom installer if you want to choose what gets installed:
 - `rules/` for always-on safety rules
 - `CLAUDE.md` for local Claude Code guidance
 
-## Files to read first
+## Read first
 
 - [skill/SKILL.md](skill/SKILL.md)
 - [commands/README.md](commands/README.md)
