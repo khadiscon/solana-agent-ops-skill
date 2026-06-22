@@ -6,6 +6,6 @@ Always-on engineering rules that apply to **all** code and designs produced with
 | --- | --- |
 | **key-management.md** | How keys are created, stored, used, and rotated — never in env/disk |
 | **transaction-safety.md** | Simulation, idempotency, least privilege, multisig gating |
-| **solana-ops.md** | Stack conventions, devnet-first, dependency hygiene, logging |
+| **solana-ops.md** | Stack conventions, staging-first validation, dependency hygiene, logging |
 
 If a request conflicts with a rule, stop and explain rather than complying.

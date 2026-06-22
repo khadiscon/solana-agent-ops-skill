@@ -10,7 +10,7 @@ Applies to every state-changing transaction, no exceptions.
 
 ## Simulate before send
 
-- Always `simulateTransaction` / keep preflight on before signing or sending.
+- Always `simulateTransaction` / keep preflight on before sending. When signatures are required for a faithful simulation, sign first, simulate the exact signed transaction, then send.
 - Inspect the error **and** the balance/compute deltas. Abort on failure or anything unexpected.
 - Never "send anyway" after a failed simulation.
 
@@ -34,9 +34,9 @@ Applies to every state-changing transaction, no exceptions.
 - On an ambiguous send result, check the chain before retrying — never double-spend or double-fund.
 - Record signatures; reconcile against intended actions.
 
-## Devnet first
+## Staging first
 
-- Validate flows on devnet/testnet before mainnet. Mainnet is a deliberate, reviewed step — stop and confirm.
+- Validate flows in a controlled non-production environment before mainnet. Mainnet is a deliberate, reviewed step — stop and confirm.
 
 ## Two-strike rule
 

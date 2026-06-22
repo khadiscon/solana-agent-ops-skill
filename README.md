@@ -33,8 +33,6 @@ Builders shipping autonomous Solana agents hit the same operational cliff:
 | **No visibility.** No standard way to know when the agent overspends, misbehaves, or needs to be stopped. | Helius webhooks classify every transaction in real time. The kill switch is on-chain authority revocation — not a process kill, a Squads member removal. |
 | **No agent-to-agent payments.** M2M value flows are ad hoc, unaudited, and unbounded. | Four payment patterns (direct, escrow, metered, streaming) all bounded by Squads Spending Limits so no payment can exceed the agent's per-window budget. |
 
-The Solana Agent Kit solves *what agents can do*. This skill solves *how they exist safely in production*.
-
 The Solana Agent Kit solves *what agents can do*. This skill solves *how they exist safely in production* — the ops layer that has been missing from every agentic Solana setup.
 
 
@@ -88,16 +86,9 @@ These safety rules override convenience and are enforced by the `rules/` engine:
 4.  **Human in the Loop**: Large treasury moves require explicit human approval via multisig.
 5.  **No Hype**: We state real technical guarantees and their assumptions.
 
-## Devnet Validation
+## Pre-Production Validation
 
-The core identity pattern — Squads v4 smart account creation with a Proposer-only agent signer — was validated on Solana devnet.
-
-| Step | Transaction |
-| :--- | :--- |
-| Squads v4 multisig created | *(run `devnet-test/run.mjs` and paste signature here)* |
-| Vault PDA derived | *(paste vault PDA here)* |
-
-To reproduce on devnet: see [`devnet-test/README.md`](devnet-test/README.md).
+Before mainnet, validate identity, spending-limit, funding, monitoring, and kill-switch flows in a controlled staging environment. Record transaction signatures, configuration outputs, and operator approvals in your project runbook.
 
 ## How it Fits
 

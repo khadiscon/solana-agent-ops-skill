@@ -37,26 +37,26 @@ confirm() {
   case "$reply" in ""|y|Y|yes|YES) return 0 ;; *) return 1 ;; esac
 }
 
-# Copy a component directory file-by-file, warning (not silently
-# overwriting) when a same-named file already exists with different
-# content — shared dirs like ~/.claude/agents/ are common ground across
-# every skill in a kit, so a blind `cp -R` can clobber another skill's
-# file with no trace.
+# Copy a component directory file-by-file. Same-named files from other
+# skills are backed up before overwrite because shared dirs like
+# ~/.claude/agents/ are common ground across every skill.
 copy_component_safely() {
   local src_dir="$1" dest_dir="$2" label="$3"
-  local f rel collisions=0
+  local f rel backup collisions=0
   mkdir -p "$dest_dir"
   while IFS= read -r -d '' f; do
     rel="${f#"$src_dir"/}"
     if [ -f "$dest_dir/$rel" ] && ! cmp -s "$f" "$dest_dir/$rel"; then
-      warn "$label/$rel already exists at $dest_dir/$rel with different content (likely from another skill) — overwriting"
+      backup="$dest_dir/$rel.bak.$(date +%Y%m%d%H%M%S)"
+      cp "$dest_dir/$rel" "$backup"
+      warn "$label/$rel differs at $dest_dir/$rel — backed up to $backup before overwriting"
       collisions=$((collisions + 1))
     fi
     mkdir -p "$dest_dir/$(dirname "$rel")"
     cp "$f" "$dest_dir/$rel"
   done < <(find "$src_dir" -type f -print0)
   if [ "$collisions" -gt 0 ]; then
-    warn "$collisions file(s) in $label/ were overwritten — diff them against $src_dir/ if something looks off"
+    warn "$collisions file(s) in $label/ were overwritten after backup"
   fi
 }
 

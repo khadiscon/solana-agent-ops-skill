@@ -23,9 +23,8 @@ The baseline: agent A pays agent B a fixed amount of USDC for a delivered result
 
 ```ts
 import {
-  Connection,
   PublicKey,
-  Transaction,
+  TransactionInstruction,
 } from "@solana/web3.js";
 import {
   getAssociatedTokenAddress,
@@ -35,22 +34,21 @@ import {
 
 const USDC_DECIMALS = 6;
 
-export async function payAgent(params: {
-  connection: Connection;
-  payerSigner: { publicKey: PublicKey; sign: (tx: Transaction) => Promise<Transaction> };
+export async function buildUsdcPaymentInstructions(params: {
+  feePayer: PublicKey;
   payerVault: PublicKey;     // agent A's Squads vault (source of funds)
   recipient: PublicKey;      // agent B's vault
   usdcMint: PublicKey;
   amountUsdc: number;        // human units, e.g. 0.25
-}) {
+}): Promise<TransactionInstruction[]> {
   const amount = BigInt(Math.round(params.amountUsdc * 10 ** USDC_DECIMALS));
   const fromAta = await getAssociatedTokenAddress(params.usdcMint, params.payerVault, true);
   const toAta = await getAssociatedTokenAddress(params.usdcMint, params.recipient, true);
 
-  const tx = new Transaction().add(
+  return [
     // Idempotent: safe whether or not B's ATA already exists.
     createAssociatedTokenAccountIdempotentInstruction(
-      params.payerSigner.publicKey, // fee payer for ATA rent
+      params.feePayer, // fee payer for ATA rent
       toAta,
       params.recipient,
       params.usdcMint
@@ -63,20 +61,11 @@ export async function payAgent(params: {
       amount,
       USDC_DECIMALS
     )
-  );
-  tx.feePayer = params.payerSigner.publicKey;
-  tx.recentBlockhash = (await params.connection.getLatestBlockhash()).blockhash;
-
-  // SIMULATE FIRST.
-  const sim = await params.connection.simulateTransaction(tx);
-  if (sim.value.err) throw new Error(`Payment simulation failed: ${JSON.stringify(sim.value.err)}`);
-
-  const signed = await params.payerSigner.sign(tx);
-  return params.connection.sendRawTransaction(signed.serialize());
+  ];
 }
 ```
 
-> When the source of funds is a Squads vault, the transfer authority is the vault PDA and the actual signing flows through the Spending Limit path (`spendingLimitUse`) so it stays under the agent's bounded budget. For a plain hot wallet, the signer is the wallet key directly — but prefer the vault + spending-limit route in production.
+> When the source of funds is a Squads vault, these instructions must be executed through the Squads Spending Limit path (`spendingLimitUse`) or a vault transaction. A normal key cannot sign as the vault PDA. Build the Squads transaction from these instructions, sign it through the approved Squads flow, simulate that exact signed transaction, then send with preflight enabled.
 
 ### Add a payment reference (reconciliation)
 
@@ -85,7 +74,7 @@ Attach a unique reference so both sides can reconcile a payment to a specific jo
 ```ts
 import { createMemoInstruction } from "@solana/spl-memo";
 // ...
-tx.add(createMemoInstruction(`job:${jobId}`, [params.payerVault]));
+instructions.push(createMemoInstruction(`job:${jobId}`, [params.payerVault]));
 ```
 
 ## Pattern 2 — Escrowed job ("pay on completion")
@@ -128,6 +117,8 @@ interface AgentEscrow {
 }
 ```
 
+Back production escrow with an audited Solana custody program or a narrowly scoped program you control and have reviewed. Before integration, verify the current audit report, SDK version, cancellation/refund behavior, and how the program enforces per-job caps.
+
 ## Pattern 3 — Metered / postpaid billing
 
 For usage-based services (per API call, per 1K tokens, per second of compute), don't settle every unit on-chain — that's slow and wasteful. **Meter off-chain, settle periodically on-chain**, with the on-chain Spending Limit as the hard ceiling.
@@ -161,7 +152,7 @@ Keep the on-chain **Spending Limit** at or below `maxPerWindowUsdc`. Even if the
 
 ## Pattern 4 — Streaming payments
 
-For continuous services (an agent renting ongoing compute or a subscription), a **payment stream** flows value per unit time and can be cancelled, so the payer only ever pays for what was consumed. Use an established streaming protocol rather than rolling your own.
+For continuous services (an agent renting ongoing compute or a subscription), a **payment stream** flows value per unit time and can be cancelled, so the payer only ever pays for what was consumed. Use an established, audited streaming protocol rather than rolling your own custody logic.
 
 ```ts
 // Conceptual: start a per-second USDC stream to a service agent, cancel later.

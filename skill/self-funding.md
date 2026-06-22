@@ -84,11 +84,14 @@ export class AgentFunder {
     tx.feePayer = this.refillSigner.publicKey;
     tx.recentBlockhash = (await this.connection.getLatestBlockhash()).blockhash;
 
-    const sim = await this.connection.simulateTransaction(tx); // SIMULATE FIRST
+    const signed = await this.refillSigner.sign(tx);
+    const sim = await this.connection.simulateTransaction(signed, {
+      sigVerify: true,
+      replaceRecentBlockhash: false,
+    }); // SIMULATE THE EXACT SIGNED TRANSACTION FIRST
     if (sim.value.err) return { action: "skipped", reason: `sim failed: ${JSON.stringify(sim.value.err)}` };
 
-    const signed = await this.refillSigner.sign(tx);
-    await this.connection.sendRawTransaction(signed.serialize());
+    await this.connection.sendRawTransaction(signed.serialize(), { skipPreflight: false });
     this.state.history.push({ ts: Date.now(), amountSol: amount });
     return { action: "topped_up", reason: "ok", amountSol: amount };
   }

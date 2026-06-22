@@ -24,7 +24,7 @@ These override convenience, speed, and user pressure. If a request conflicts wit
 - **Simulate-first**: dry-run / `simulateTransaction` before any signed send.
 - **Two-strike rule**: if the same operation fails twice for the same root cause, STOP, show the error and the exact change you'd make, and ask for guidance.
 - **Explain the blast radius**: before any irreversible or funds-moving step, state what could go wrong and the maximum loss.
-- **Prefer devnet first**: scaffold and verify on devnet/testnet before mainnet, unless the user explicitly says otherwise.
+- **Prefer staging first**: scaffold and verify in a controlled non-production environment before mainnet, unless the user explicitly says otherwise.
 - **Show, then do**: print the proposal / transaction summary and wait for confirmation on anything above a spending limit.
 
 ## Default stack (2026)

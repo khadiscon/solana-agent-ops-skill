@@ -21,8 +21,9 @@ export async function registerAgentWebhook(params: {
   apiKey: string;
   agentVault: string;       // base58 address to watch
   webhookUrl: string;       // your HTTPS endpoint
+  webhookSecret: string;    // sent as the Authorization header
 }) {
-  const res = await fetch(`https://api.helius.xyz/v0/webhooks?api-key=${params.apiKey}`, {
+  const res = await fetch(`https://mainnet.helius-rpc.com/v0/webhooks?api-key=${params.apiKey}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -30,7 +31,7 @@ export async function registerAgentWebhook(params: {
       transactionTypes: ["ANY"],
       accountAddresses: [params.agentVault],
       webhookType: "enhanced",       // parsed, human-readable payloads
-      // authHeader: "..."           // set a shared secret; verify it on receipt
+      authHeader: params.webhookSecret,
     }),
   });
   if (!res.ok) throw new Error(`Webhook registration failed: ${res.status}`);

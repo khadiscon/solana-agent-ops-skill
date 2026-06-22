@@ -9,7 +9,6 @@ description: >-
   ops layer that complements the Solana Agent Kit's actions. Does NOT cover
   program development, RPC/client primitives, or general security checklists
   — defer those to solana-dev-skill.
-license: MIT
 ---
 
 # Solana Agent Ops

@@ -24,11 +24,16 @@ If asked to put a key in an env var, **refuse** and offer a signer-based alterna
 Every state-changing transaction is simulated first (`simulateTransaction` / preflight). Inspect the result *and* the balance/compute deltas. Abort on failure or anything surprising.
 
 ```ts
-const sim = await connection.simulateTransaction(tx);
+const signed = await signer.sign(tx);
+const sim = await connection.simulateTransaction(signed, {
+  sigVerify: true,
+  replaceRecentBlockhash: false,
+});
 if (sim.value.err) {
   throw new Error(`Refusing to send — simulation failed: ${JSON.stringify(sim.value.err)}`);
 }
 // Also sanity-check: did this move the amount we expected, and only that?
+await connection.sendRawTransaction(signed.serialize(), { skipPreflight: false });
 ```
 
 Never “send anyway” after a failed simulation. A failed sim is the cheapest possible warning you'll get.
@@ -96,7 +101,7 @@ An agent that reads untrusted input (web, messages, other agents) can be *steere
 
 - **Pin dependencies.** Exact versions + lockfile. Minimize the dependency surface; every transitive dep can sign-jack if it runs in the signer's process.
 - **Keep the signer process minimal.** The fewer things running where the key lives, the smaller the attack surface. The TEE pattern enforces this.
-- **Devnet first.** Validate flows on devnet/testnet before mainnet. Treat the mainnet deploy as a deliberate, reviewed step.
+- **Staging first.** Validate flows in a controlled non-production environment before mainnet. Treat the mainnet deploy as a deliberate, reviewed step.
 - **Idempotency.** On ambiguous send results, check the chain before retrying — never double-spend.
 - **Log decisions, never secrets.** `{action, reason, amount, signature}` — yes. Keys, seeds, full payloads with secrets — never.
 - **Reproducible deploys.** Especially for TEEs, where the measurement *is* your identity. A changed build = a changed measurement = re-attest + rotate.
@@ -136,5 +141,5 @@ Rehearse this **before** you need it. An incident is the wrong time to discover 
 - [ ] Kill switch (on-chain authority revoke) tested and rehearsed
 - [ ] Incident-response runbook written and rehearsed
 - [ ] Dependencies pinned; signer process minimized
-- [ ] Validated on devnet before mainnet
+- [ ] Validated in a controlled non-production environment before mainnet
 - [ ] No "unhackable"/"trustless" claims; assumptions documented
