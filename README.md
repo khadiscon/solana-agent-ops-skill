@@ -1,6 +1,6 @@
 # Solana Agent Ops
 
-This repo is a skill package for Solana AI Kit / Claude Code / Codex.
+This repo is a skill package for Solana AI Kit.
 
 It gives an agent the operational pieces it needs to run a Solana setup safely:
 - identity with Squads v4
