@@ -20,6 +20,24 @@ A complete operational framework that turns any agentic setup into a production-
 *   **Progressive Skill Loading**: Context-aware routing that minimizes token overhead.
 *   **Safety-First Rules**: Always-on enforcement for key management and transaction safety.
 
+
+## The Problem
+
+Builders shipping autonomous Solana agents hit the same operational cliff:
+
+| Problem | This skill's answer |
+| :--- | :--- |
+| **No stable identity.** A bare keypair is the agent — one compromise and everything it owned is gone. | Squads v4 vault PDA is the durable address. The signing keypair is a replaceable member. Compromise the key, revoke the member, add a new one — the identity, balances, and history are untouched. |
+| **No funding safety.** Manual top-ups stall the agent; automated top-ups without limits build a drain. | Two-tier funding: micro refills under hard per-action and rolling-window caps with a latching circuit breaker; large refills become treasury proposals a human approves. |
+| **No safe place for keys.** Most setups end up with the signing key in `.env` or a Docker image — one leaked log away from total loss. | Keys generated inside a TEE (Marlin Oyster sealed signer or Phala CVM). They never exist in plaintext outside the enclave. |
+| **No visibility.** No standard way to know when the agent overspends, misbehaves, or needs to be stopped. | Helius webhooks classify every transaction in real time. The kill switch is on-chain authority revocation — not a process kill, a Squads member removal. |
+| **No agent-to-agent payments.** M2M value flows are ad hoc, unaudited, and unbounded. | Four payment patterns (direct, escrow, metered, streaming) all bounded by Squads Spending Limits so no payment can exceed the agent's per-window budget. |
+
+The Solana Agent Kit solves *what agents can do*. This skill solves *how they exist safely in production*.
+
+The Solana Agent Kit solves *what agents can do*. This skill solves *how they exist safely in production* — the ops layer that has been missing from every agentic Solana setup.
+
+
 ## Quick Start
 
 ```bash
