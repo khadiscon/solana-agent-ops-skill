@@ -1,5 +1,7 @@
 # Solana Agent Ops
 
+[![CI](https://github.com/khadiscon/solana-agent-ops-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/khadiscon/solana-agent-ops-skill/actions?query=workflow%3Aci) [![Release](https://img.shields.io/github/v/release/khadiscon/solana-agent-ops-skill.svg)](https://github.com/khadiscon/solana-agent-ops-skill/releases)
+
 This repo is a skill package for Solana AI Kit, Claude Code, and Codex.
 
 It tells an agent how to run Solana operations safely. It covers:
@@ -32,6 +34,22 @@ Use the custom installer if you want to choose what gets installed or where it g
 
 ```bash
 ./install-custom.sh
+```
+
+## Quick Start
+
+Option 1 — use the installer from a local checkout (clone, then run installer):
+
+```bash
+git clone https://github.com/khadiscon/solana-agent-ops-skill.git
+cd solana-agent-ops-skill
+./install.sh
+```
+
+Option 2 — SSH clone (copy/paste):
+
+```bash
+git clone git@github.com:khadiscon/solana-agent-ops-skill.git
 ```
 
 ## What gets installed
